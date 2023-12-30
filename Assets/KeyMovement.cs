@@ -102,9 +102,12 @@ public class KeyMovement : MonoBehaviour
 
     public void enterStairs() {
         if(!onStairs) {
-            renderInHigherLayer();
+            var newAltitude = getAltitudeOfTileIgnoringAltitude(gameObject.transform.position);
+            if(newAltitude == altitude) {
+                renderInHigherLayer();
+                onStairs = true;
+            }
         }
-        onStairs = true;
     }
 
     public void exitStairs() {
