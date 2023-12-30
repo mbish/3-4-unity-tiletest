@@ -83,6 +83,7 @@ public class KeyMovement : MonoBehaviour
             var highestTilemap = getAltitudeOfTile(gameObject.transform.position + v);
             jumpToAltitude(highestTilemap);
         } else {
+            // ignore altitude when calculating tile position on stairs
             var newAltitude = getAltitudeOfTileIgnoringAltitude(gameObject.transform.position + v);
             transform.position +=  new Vector3(0, 0, -(altitude - newAltitude));
             altitude = newAltitude;
@@ -102,6 +103,7 @@ public class KeyMovement : MonoBehaviour
 
     public void enterStairs() {
         if(!onStairs) {
+            // only get on the stairs if they're on the same altitude
             var newAltitude = getAltitudeOfTileIgnoringAltitude(gameObject.transform.position);
             if(newAltitude == altitude) {
                 renderInHigherLayer();
@@ -112,7 +114,6 @@ public class KeyMovement : MonoBehaviour
 
     public void exitStairs() {
         if(onStairs) {
-            // transform.position +=  new Vector3(0, 0, 1);
             var newAltitude = getAltitudeOfTile(gameObject.transform.position);
             transform.position =  new Vector3(transform.position.x, transform.position.y, newAltitude - 1);
             altitude = newAltitude;
