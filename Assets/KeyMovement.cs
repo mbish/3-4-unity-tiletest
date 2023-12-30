@@ -39,13 +39,29 @@ public class KeyMovement : MonoBehaviour
         }
     }
 
-    float getAltitudeOfCurrentTile() {
-        Vector2 currentPosition = (Vector2) gameObject.transform.position;
-        float newY = currentPosition.y;
+    float getAltitudeOfTileIgnoringAltitude(Vector2 position) {
+        float newY = position.y;
         float highestTilemap = 0;
         foreach (var tilemap in tileMapParent.GetComponentsInChildren<Tilemap>()){
             var tilemapZ = tilemap.transform.position.z;
-            var adjustedPosition = new Vector3(currentPosition.x, currentPosition.y - tilemapZ + altitude);
+            var adjustedPosition = new Vector2(position.x, position.y);
+            var cellPosition = tilemap.WorldToCell(adjustedPosition);
+            var tile = tilemap.GetTile(cellPosition);
+            if(tile) {
+                if(tilemapZ < highestTilemap) {
+                    highestTilemap = tilemapZ;
+                }
+            }
+        }
+        return highestTilemap;
+    }
+
+    float getAltitudeOfTile(Vector2 position) {
+        float newY = position.y;
+        float highestTilemap = 0;
+        foreach (var tilemap in tileMapParent.GetComponentsInChildren<Tilemap>()){
+            var tilemapZ = tilemap.transform.position.z;
+            var adjustedPosition = new Vector2(position.x, position.y - tilemapZ + altitude);
             var cellPosition = tilemap.WorldToCell(adjustedPosition);
             var tile = tilemap.GetTile(cellPosition);
             if(tile) {
@@ -63,12 +79,15 @@ public class KeyMovement : MonoBehaviour
     }
 
     void move(Vector3 v) {
-        var highestTilemap = getAltitudeOfCurrentTile();
-        transform.position += v;
-
         if(!onStairs) {
+            var highestTilemap = getAltitudeOfTile(gameObject.transform.position + v);
             jumpToAltitude(highestTilemap);
+        } else {
+            var newAltitude = getAltitudeOfTileIgnoringAltitude(gameObject.transform.position + v);
+            transform.position +=  new Vector3(0, 0, -(altitude - newAltitude));
+            altitude = newAltitude;
         }
+        transform.position += v;
     }
 
     void renderInHigherLayer() {
@@ -91,8 +110,8 @@ public class KeyMovement : MonoBehaviour
     public void exitStairs() {
         if(onStairs) {
             // transform.position +=  new Vector3(0, 0, 1);
-            var newAltitude = getAltitudeOfCurrentTile();
-            transform.position +=  new Vector3(0, 0, -(altitude - newAltitude));
+            var newAltitude = getAltitudeOfTile(gameObject.transform.position);
+            transform.position =  new Vector3(transform.position.x, transform.position.y, newAltitude - 1);
             altitude = newAltitude;
             renderInDefaultLayer();
         }
