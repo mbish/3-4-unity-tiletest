@@ -1,18 +1,26 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+
+
+[RequireComponent(typeof(Altitude))]
 public class KeyMovement : MonoBehaviour
 {
     public float speed = 5f;
-    public float altitude = 0;
     public bool onStairs = false;
     public GameObject tileMapParent;
+    private Altitude altitude;
     // Start is called before the first frame update
     void Start()
     {
         
+    }
+
+    void Awake() {
+        altitude = GetComponent<Altitude>();
     }
 
     // Update is called once per frame
@@ -39,73 +47,62 @@ public class KeyMovement : MonoBehaviour
         }
     }
 
-    float getAltitudeOfTileIgnoringAltitude(Vector2 position) {
-        float newY = position.y;
-        float highestTilemap = 0;
+    int _getAltitudeOfTileWithAdjustment(Vector2 position, Func<int,int> adjustment) {
+        int highestTilemap = 0;
         foreach (var tilemap in tileMapParent.GetComponentsInChildren<Tilemap>()){
-            var tilemapZ = tilemap.transform.position.z;
-            var adjustedPosition = new Vector2(position.x, position.y);
+            var tilemapAltitude= tilemap.gameObject.GetComponent<Altitude>().value;
+            var adjustedPosition = new Vector2(position.x, position.y + adjustment(tilemapAltitude));
             var cellPosition = tilemap.WorldToCell(adjustedPosition);
             var tile = tilemap.GetTile(cellPosition);
             if(tile) {
-                if(tilemapZ < highestTilemap) {
-                    highestTilemap = tilemapZ;
+                if(tilemapAltitude > highestTilemap) {
+                    highestTilemap = tilemapAltitude;
                 }
             }
         }
-        return highestTilemap;
+        return (int) highestTilemap;
     }
 
-    float getAltitudeOfTile(Vector2 position) {
-        float newY = position.y;
-        float highestTilemap = 0;
-        foreach (var tilemap in tileMapParent.GetComponentsInChildren<Tilemap>()){
-            var tilemapZ = tilemap.transform.position.z;
-            var adjustedPosition = new Vector2(position.x, position.y - tilemapZ + altitude);
-            var cellPosition = tilemap.WorldToCell(adjustedPosition);
-            var tile = tilemap.GetTile(cellPosition);
-            if(tile) {
-                if(tilemapZ < highestTilemap) {
-                    highestTilemap = tilemapZ;
-                }
-            }
-        }
-        return highestTilemap;
+    int getAltitudeOfTileIgnoringAltitude(Vector2 position) {
+        return _getAltitudeOfTileWithAdjustment(position, (int x) => 0);
     }
 
-    void jumpToAltitude(float newAltitude) {
-        transform.position +=  new Vector3(0, altitude - newAltitude, -(altitude - newAltitude));
-        altitude = newAltitude;
+    int getAltitudeOfTile(Vector2 position) {
+        return _getAltitudeOfTileWithAdjustment(position, (int tilemapAltitude) => tilemapAltitude - altitude.value);
+    }
+
+    void jumpToAltitude(int newAltitude) {
+        transform.position +=  (Vector3) new Vector2(0, newAltitude - altitude.value);
+        altitude.changeAltitude(newAltitude);
     }
 
     void move(Vector3 v) {
         if(!onStairs) {
-            var highestTilemap = getAltitudeOfTile(gameObject.transform.position + v);
+            var highestTilemap = getAltitudeOfTile(transform.position + v);
             jumpToAltitude(highestTilemap);
         } else {
             // ignore altitude when calculating tile position on stairs
-            var newAltitude = getAltitudeOfTileIgnoringAltitude(gameObject.transform.position + v);
-            transform.position +=  new Vector3(0, 0, -(altitude - newAltitude));
-            altitude = newAltitude;
+            var newAltitude = getAltitudeOfTileIgnoringAltitude(transform.position + v);
+            altitude.changeAltitude(newAltitude);
         }
         transform.position += v;
     }
 
     void renderInHigherLayer() {
-        var renderer = gameObject.GetComponent<Renderer>();
-        renderer.sortingOrder = 1;
+        var renderer = GetComponent<Renderer>();
+        renderer.sortingOrder++;
     }
 
     void renderInDefaultLayer() {
-        var renderer = gameObject.GetComponent<Renderer>();
-        renderer.sortingOrder = 0;
+        var renderer = GetComponent<Renderer>();
+        renderer.sortingOrder--;
     }
 
     public void enterStairs() {
         if(!onStairs) {
             // only get on the stairs if they're on the same altitude
-            var newAltitude = getAltitudeOfTileIgnoringAltitude(gameObject.transform.position);
-            if(newAltitude == altitude) {
+            var newAltitude = getAltitudeOfTileIgnoringAltitude(transform.position);
+            if(newAltitude == altitude.value) {
                 renderInHigherLayer();
                 onStairs = true;
             }
@@ -114,9 +111,9 @@ public class KeyMovement : MonoBehaviour
 
     public void exitStairs() {
         if(onStairs) {
-            var newAltitude = getAltitudeOfTile(gameObject.transform.position);
-            transform.position =  new Vector3(transform.position.x, transform.position.y, newAltitude - 1);
-            altitude = newAltitude;
+            var newAltitude = getAltitudeOfTile(transform.position);
+            transform.position =  new Vector2(transform.position.x, transform.position.y);
+            altitude.changeAltitude(newAltitude);
             renderInDefaultLayer();
         }
         onStairs = false;
