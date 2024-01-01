@@ -7,12 +7,14 @@ using UnityEngine.Tilemaps;
 
 
 [RequireComponent(typeof(Altitude))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class KeyMovement : MonoBehaviour
 {
     public float speed = 5f;
     public bool onStairs = false;
     public GameObject tileMapParent;
     private Altitude altitude;
+    private Rigidbody2D rb;
     // Start is called before the first frame update
     void Start()
     {
@@ -21,6 +23,7 @@ public class KeyMovement : MonoBehaviour
 
     void Awake() {
         altitude = GetComponent<Altitude>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
@@ -28,22 +31,22 @@ public class KeyMovement : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            move(new Vector3(speed * Time.deltaTime, 0f, 0f));
+            move(new Vector2(speed * Time.deltaTime, 0f));
         }
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            move(new Vector3(-speed * Time.deltaTime, 0f, 0f));
+            move(new Vector2(-speed * Time.deltaTime, 0f));
         }
 
         if (Input.GetKey(KeyCode.UpArrow))
         {
-            move(new Vector3(0f, speed * Time.deltaTime, 0f));
+            move(new Vector2(0f, speed * Time.deltaTime));
         }
 
         if (Input.GetKey(KeyCode.DownArrow))
         {
-            move(new Vector3(0f, -speed * Time.deltaTime, 0f));
+            move(new Vector2(0f, -speed * Time.deltaTime));
         }
     }
 
@@ -72,20 +75,20 @@ public class KeyMovement : MonoBehaviour
     }
 
     void jumpToAltitude(int newAltitude) {
-        transform.position +=  (Vector3) new Vector2(0, newAltitude - altitude.value);
+        rb.position +=  new Vector2(0, newAltitude - altitude.value);
         altitude.changeAltitude(newAltitude);
     }
 
-    void move(Vector3 v) {
+    void move(Vector2 v) {
         if(!onStairs) {
-            var highestTilemap = getAltitudeOfTile(transform.position + v);
+            var highestTilemap = getAltitudeOfTile(rb.position + v);
             jumpToAltitude(highestTilemap);
         } else {
             // ignore altitude when calculating tile position on stairs
-            var newAltitude = getAltitudeOfTileIgnoringAltitude(transform.position + v);
+            var newAltitude = getAltitudeOfTileIgnoringAltitude(rb.position + v);
             altitude.changeAltitude(newAltitude);
         }
-        transform.position += v;
+        rb.position += v;
     }
 
     void renderInHigherLayer() {
@@ -112,7 +115,6 @@ public class KeyMovement : MonoBehaviour
     public void exitStairs() {
         if(onStairs) {
             var newAltitude = getAltitudeOfTile(transform.position);
-            transform.position =  new Vector2(transform.position.x, transform.position.y);
             altitude.changeAltitude(newAltitude);
             renderInDefaultLayer();
         }
