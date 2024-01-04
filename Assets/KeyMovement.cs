@@ -8,6 +8,7 @@ using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Altitude))]
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(BoxCollider2D))]
 public class KeyMovement : MonoBehaviour
 {
     public float speed = 5f;
@@ -15,10 +16,12 @@ public class KeyMovement : MonoBehaviour
     public GameObject tileMapParent;
     private Altitude altitude;
     private Rigidbody2D rb;
+    private BoxCollider2D box;
 
     void Awake() {
         altitude = GetComponent<Altitude>();
         rb = GetComponent<Rigidbody2D>();
+        box = GetComponent<BoxCollider2D>();
     }
 
     // Update is called once per frame
@@ -79,22 +82,36 @@ public class KeyMovement : MonoBehaviour
 
     void move(Vector2 v) {
         var renderer = GetComponent<Renderer>();
-        var leadingEdge = rb.position + (v.normalized * renderer.bounds.extents) + v;
-        var trailingEdge = rb.position + (-v.normalized * renderer.bounds.extents) + v;
+
+        // need to check all four points of the box actually not just the leading and trailing edges
+        var topLeft = box.bounds.min;
+        var bottomRight = box.bounds.max;
+        var topRight = box.bounds.min + new Vector3(box.bounds.size.x, 0, 0);
+        var bottomLeft = box.bounds.min + new Vector3(0, box.bounds.size.y, 0);
+        Vector3[] points = {topLeft, bottomRight, topRight, bottomLeft};
+
         if(!onStairs) {
-            var leadingAltitude = getAltitudeOfTile(leadingEdge);
-            var trailingAltitude = getAltitudeOfTile(trailingEdge);
-            if(leadingAltitude > altitude.value) {
-                return;
-            } else if(trailingAltitude < altitude.value) {
-                jumpToAltitude(trailingAltitude);
+            var highestAltitude = -1;
+            foreach(var point in points) {
+                var newAltitude = getAltitudeOfTile(point + (Vector3) v);
+                if(newAltitude > altitude.value) {
+                    // Debug.Log("Refusing to jump");
+                    return;
+                } else {
+                    highestAltitude = Math.Max(newAltitude, highestAltitude);
+                }
+            }
+            if(highestAltitude < altitude.value) {
+                jumpToAltitude(highestAltitude);
             }
         } else {
             // ignore altitude when calculating tile position on stairs
-            var newAltitude = getAltitudeOfTileIgnoringAltitude(leadingEdge);
+            var newAltitude = getAltitudeOfTileIgnoringAltitude(bottomLeft);
             altitude.changeAltitude(newAltitude);
         }
-        rb.position += v;
+        if(!checkCollision(v)) {
+            rb.position += v;
+        }
     }
 
     bool checkCollision(Vector2 v) {
@@ -108,6 +125,7 @@ public class KeyMovement : MonoBehaviour
         rb.position += v;
         if(hit.collider != null && hit.rigidbody != null) {
             if(rb.IsTouching(hit.collider)) {
+                Debug.Log("has collision");
                 hasCollision = true;
             }
         }
@@ -139,6 +157,7 @@ public class KeyMovement : MonoBehaviour
     public void exitStairs() {
         if(onStairs) {
             var newAltitude = getAltitudeOfTile(rb.position);
+            // jumpToAltitude(newAltitude);
             altitude.changeAltitude(newAltitude);
             renderInDefaultLayer();
         }
