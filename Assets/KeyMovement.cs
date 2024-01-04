@@ -15,11 +15,6 @@ public class KeyMovement : MonoBehaviour
     public GameObject tileMapParent;
     private Altitude altitude;
     private Rigidbody2D rb;
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
     void Awake() {
         altitude = GetComponent<Altitude>();
@@ -29,24 +24,27 @@ public class KeyMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+    }
+
+    void FixedUpdate() {
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            move(new Vector2(speed * Time.deltaTime, 0f));
+            move(new Vector2(speed * Time.fixedDeltaTime, 0f));
         }
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            move(new Vector2(-speed * Time.deltaTime, 0f));
+            move(new Vector2(-speed * Time.fixedDeltaTime, 0f));
         }
 
         if (Input.GetKey(KeyCode.UpArrow))
         {
-            move(new Vector2(0f, speed * Time.deltaTime));
+            move(new Vector2(0f, speed * Time.fixedDeltaTime));
         }
 
         if (Input.GetKey(KeyCode.DownArrow))
         {
-            move(new Vector2(0f, -speed * Time.deltaTime));
+            move(new Vector2(0f, -speed * Time.fixedDeltaTime));
         }
     }
 
@@ -82,13 +80,35 @@ public class KeyMovement : MonoBehaviour
     void move(Vector2 v) {
         if(!onStairs) {
             var highestTilemap = getAltitudeOfTile(rb.position + v);
-            jumpToAltitude(highestTilemap);
+            if(highestTilemap > altitude.value) {
+                return;
+            } else {
+                jumpToAltitude(highestTilemap);
+            }
         } else {
             // ignore altitude when calculating tile position on stairs
             var newAltitude = getAltitudeOfTileIgnoringAltitude(rb.position + v);
             altitude.changeAltitude(newAltitude);
         }
         rb.position += v;
+    }
+
+    bool checkCollision(Vector2 v) {
+        var sprite = GetComponent<Renderer>();
+        var ray = (Vector3) (v.normalized);
+        // var ray = v.normalized;
+        List<RaycastHit2D> results = new List<RaycastHit2D>();
+        var filter = new ContactFilter2D();
+        var hit = Physics2D.Raycast(rb.position, ray);
+        var hasCollision = false;
+        rb.position += v;
+        if(hit.collider != null && hit.rigidbody != null) {
+            if(rb.IsTouching(hit.collider)) {
+                hasCollision = true;
+            }
+        }
+        rb.position -= v;
+        return hasCollision;
     }
 
     void renderInHigherLayer() {
@@ -104,7 +124,7 @@ public class KeyMovement : MonoBehaviour
     public void enterStairs() {
         if(!onStairs) {
             // only get on the stairs if they're on the same altitude
-            var newAltitude = getAltitudeOfTileIgnoringAltitude(transform.position);
+            var newAltitude = getAltitudeOfTileIgnoringAltitude(rb.position);
             if(newAltitude == altitude.value) {
                 renderInHigherLayer();
                 onStairs = true;
@@ -114,7 +134,7 @@ public class KeyMovement : MonoBehaviour
 
     public void exitStairs() {
         if(onStairs) {
-            var newAltitude = getAltitudeOfTile(transform.position);
+            var newAltitude = getAltitudeOfTile(rb.position);
             altitude.changeAltitude(newAltitude);
             renderInDefaultLayer();
         }
