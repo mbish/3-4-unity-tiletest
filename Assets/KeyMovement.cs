@@ -78,16 +78,20 @@ public class KeyMovement : MonoBehaviour
     }
 
     void move(Vector2 v) {
+        var renderer = GetComponent<Renderer>();
+        var leadingEdge = rb.position + (v.normalized * renderer.bounds.extents) + v;
+        var trailingEdge = rb.position + (-v.normalized * renderer.bounds.extents) + v;
         if(!onStairs) {
-            var highestTilemap = getAltitudeOfTile(rb.position + v);
-            if(highestTilemap > altitude.value) {
+            var leadingAltitude = getAltitudeOfTile(leadingEdge);
+            var trailingAltitude = getAltitudeOfTile(trailingEdge);
+            if(leadingAltitude > altitude.value) {
                 return;
-            } else {
-                jumpToAltitude(highestTilemap);
+            } else if(trailingAltitude < altitude.value) {
+                jumpToAltitude(trailingAltitude);
             }
         } else {
             // ignore altitude when calculating tile position on stairs
-            var newAltitude = getAltitudeOfTileIgnoringAltitude(rb.position + v);
+            var newAltitude = getAltitudeOfTileIgnoringAltitude(leadingEdge);
             altitude.changeAltitude(newAltitude);
         }
         rb.position += v;
