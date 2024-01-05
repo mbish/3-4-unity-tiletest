@@ -72,24 +72,28 @@ public class KeyMovement : MonoBehaviour
     //     return hasCollision;
     // }
 
-    // public void enterStairs() {
-    //     if(!onStairs) {
-    //         // only get on the stairs if they're on the same altitude
-    //         var newAltitude = getAltitudeOfTileIgnoringAltitude(rb.position);
-    //         if(newAltitude == altitude.value) {
-    //             renderInHigherLayer();
-    //             onStairs = true;
-    //         }
-    //     }
-    // }
+    void renderInHigherLayer() {
+        var renderer = GetComponent<Renderer>();
+        renderer.sortingOrder++;
 
-    // public void exitStairs() {
-    //     if(onStairs) {
-    //         var newAltitude = getAltitudeOfTile(rb.position);
-    //         // jumpToAltitude(newAltitude);
-    //         altitude.changeAltitude(newAltitude);
-    //         renderInDefaultLayer();
-    //     }
-    //     onStairs = false;
-    // }
+    }void renderInLowerLayer() {
+        var renderer = GetComponent<Renderer>();
+        renderer.sortingOrder--;
+    }
+
+    public void enterStairs() {
+        if(!onStairs && !tileAltitudeMover.willDisablingChangeAltitude()) {
+            renderInHigherLayer();
+            tileAltitudeMover.disable();
+            onStairs = true;
+        }
+    }
+
+    public void exitStairs() {
+        if(onStairs) {
+            renderInLowerLayer();
+            tileAltitudeMover.enable();
+            onStairs = false;
+        }
+    }
 }
