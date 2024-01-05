@@ -47,9 +47,13 @@ public class RespectTileAltitude : MonoBehaviour
     }
 
     public Vector3 move(Vector2 v) {
+        const float Epsilon = 0.00005f;
         // if we're not enabled we don't make any adjustments to the passed in vector
         if(!isEnabled) {
             return v;
+        }
+        if(v.sqrMagnitude < Epsilon) {
+            return Vector3.zero;
         }
 
         var topLeft = objectBase.bounds.min;
@@ -62,7 +66,7 @@ public class RespectTileAltitude : MonoBehaviour
         foreach(var point in points) {
             var newAltitude = getAltitudeOfTile(point + (Vector3) v);
             if(newAltitude > altitude.value) {
-                return Vector3.zero;
+                return move(v/2);
             } else {
                 highestAltitude = Math.Max(newAltitude, highestAltitude);
             }

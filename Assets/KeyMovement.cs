@@ -74,11 +74,11 @@ public class KeyMovement : MonoBehaviour
 
     void renderInHigherLayer() {
         var renderer = GetComponent<Renderer>();
-        renderer.sortingOrder++;
+        renderer.sortingOrder += 5;
 
     }void renderInLowerLayer() {
         var renderer = GetComponent<Renderer>();
-        renderer.sortingOrder--;
+        renderer.sortingOrder -= 5;
     }
 
     public void enterStairs() {
