@@ -66,6 +66,7 @@ public class RespectTileAltitude : MonoBehaviour
         foreach(var point in points) {
             var newAltitude = getAltitudeOfTile(point + (Vector3) v);
             if(newAltitude > altitude.value) {
+                // try to move a smaller distance
                 return move(v/2);
             } else {
                 highestAltitude = Math.Max(newAltitude, highestAltitude);
