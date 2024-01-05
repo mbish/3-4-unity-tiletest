@@ -32,22 +32,22 @@ public class KeyMovement : MonoBehaviour
         var movement = new Vector3(0,0,0);
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            movement += tileAltitudeMover.move(new Vector2(speed * Time.fixedDeltaTime, 0f));
+            movement += tileAltitudeMover.move2(new Vector2(speed * Time.fixedDeltaTime, 0f));
         }
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            movement += tileAltitudeMover.move(new Vector2(-speed * Time.fixedDeltaTime, 0f));
+            movement += tileAltitudeMover.move2(new Vector2(-speed * Time.fixedDeltaTime, 0f));
         }
 
         if (Input.GetKey(KeyCode.UpArrow))
         {
-            movement += tileAltitudeMover.move(new Vector2(0f, speed * Time.fixedDeltaTime));
+            movement += tileAltitudeMover.move2(new Vector2(0f, speed * Time.fixedDeltaTime));
         }
 
         if (Input.GetKey(KeyCode.DownArrow))
         {
-            movement += tileAltitudeMover.move(new Vector2(0f, -speed * Time.fixedDeltaTime));
+            movement += tileAltitudeMover.move2(new Vector2(0f, -speed * Time.fixedDeltaTime));
         }
         rb.position += (Vector2) movement;
     }

@@ -16,9 +16,9 @@ public class RespectTileAltitude : MonoBehaviour
     void Awake() {
         altitude = GetComponent<Altitude>();
     }
-    int _getAltitudeOfTileWithAdjustment(Vector2 position, Func<int,int> adjustment) {
+    int _getAltitudeOfTileWithAdjustment(Vector2 position, Func<int,int> adjustment, Tilemap[] tilemaps) {
         int highestTilemap = 0;
-        foreach (var tilemap in tileMapParent.GetComponentsInChildren<Tilemap>()){
+        foreach (var tilemap in tilemaps){
             var tilemapAltitude= tilemap.gameObject.GetComponent<Altitude>().value;
             var adjustedPosition = new Vector2(position.x, position.y + adjustment(tilemapAltitude));
             var cellPosition = tilemap.WorldToCell(adjustedPosition);
@@ -33,17 +33,53 @@ public class RespectTileAltitude : MonoBehaviour
     }
 
     int getAltitudeOfTileIgnoringAltitude(Vector2 position) {
-        return _getAltitudeOfTileWithAdjustment(position, (int x) => 0);
+        return _getAltitudeOfTileWithAdjustment(position, (int x) => 0, tileMapParent.GetComponentsInChildren<Tilemap>());
+
     }
 
     int getAltitudeOfTile(Vector2 position) {
-        return _getAltitudeOfTileWithAdjustment(position, (int tilemapAltitude) => tilemapAltitude - altitude.value);
+        return _getAltitudeOfTileWithAdjustment(position, (int tilemapAltitude) => tilemapAltitude - altitude.value, tileMapParent.GetComponentsInChildren<Tilemap>());
     }
 
     Vector3 jumpToAltitude(int newAltitude) {
         var oldAltitude = altitude.value;
         altitude.changeAltitude(newAltitude);
         return new Vector2(0, newAltitude - oldAltitude);
+    }
+
+    public Vector3 move2(Vector2 v) {
+        List<RaycastHit2D> results = new List<RaycastHit2D>();
+        var filter = new ContactFilter2D();
+
+        // this can't work because the colliders are in the wrong position.
+        // maybe we dynamically offset the tilemap colliders on Start if
+        // they have an altitude?
+        // alternatively we could re-do the cast at each altitude by adjusting the origin's Y coordinates
+        // at that point I might just want to do a boxcast?
+        var hits = objectBase.Cast(v, filter.NoFilter(), results, v.magnitude);
+        Debug.Log(hits);
+        if(hits == 0) {
+            return v;
+        }
+        var minimumHitAtElevation = v;
+        foreach(var hit in results)  {
+            var tilemap = hit.transform.gameObject.GetComponent<Tilemap>();
+            if(tilemap) {
+                Tilemap[] tilemaps = {tilemap};
+                Debug.Log("checking with out point");
+                Debug.Log(hit.point);
+                var newAltitude = _getAltitudeOfTileWithAdjustment(hit.point, (int tilemapAltitude) => tilemapAltitude - altitude.value, tilemaps);
+                Debug.Log("new altitude");
+                Debug.Log(newAltitude);
+                if(newAltitude != altitude.value) {
+                    if(hit.distance < minimumHitAtElevation.magnitude) {
+                        minimumHitAtElevation = v.normalized * hit.distance;
+                    }
+                }
+            }
+        }
+        return minimumHitAtElevation;
+
     }
 
     public Vector3 move(Vector2 v) {
