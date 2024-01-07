@@ -77,7 +77,7 @@ public class RespectTileAltitude : MonoBehaviour
         var filter = new ContactFilter2D();
         var startingPosition = new Vector2(objectBase.offset.x, objectBase.offset.y);
         foreach(var worldAltitude in GetAltitudes()) {
-            objectBase.offset = startingPosition + new Vector2(0, worldAltitude);
+            objectBase.offset = startingPosition + (Vector2) objectBase.gameObject.transform.InverseTransformVector(new Vector2(0, worldAltitude - 1));
             var hits = CastAtAltitude<Tilemap>(worldAltitude, v, filter.NoFilter(), v.magnitude);
             foreach(var hit in hits) {
                 objectBase.offset = startingPosition;
