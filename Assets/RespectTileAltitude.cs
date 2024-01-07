@@ -102,9 +102,8 @@ public class RespectTileAltitude : MonoBehaviour
         return colliderInDirection(Vector2.up, collider) && colliderInDirection(Vector2.down, collider);
     }
 
-    public Vector3 move2(Vector2 v) {
+    public Vector3 move(Vector2 v) {
         var filter = new ContactFilter2D();
-        var startingPosition = new Vector2(objectBase.offset.x, objectBase.offset.y);
 
         // if we don't overlap the current altitude we have to fall
         var grounded = false;
@@ -123,55 +122,30 @@ public class RespectTileAltitude : MonoBehaviour
             return v + (Vector2) jumpToAltitude(newAltitude);
         }
 
+        var startingPosition = new Vector2(objectBase.offset.x, objectBase.offset.y);
         foreach(var worldAltitude in GetAltitudes()) {
             if(worldAltitude == altitude.value)
                 continue;
 
-            var localAltitudeOffset = (Vector2) objectBase.gameObject.transform.InverseTransformVector(new Vector2(0, worldAltitude - 1));
+            var localAltitudeOffset = (Vector2) objectBase.gameObject.transform.InverseTransformVector(new Vector2(0, worldAltitude - altitude.value));
             objectBase.offset = startingPosition + localAltitudeOffset;
             var hits = CastAtAltitude<Tilemap>(worldAltitude, v, filter.NoFilter(), v.magnitude);
             foreach(var hit in hits) {
                 // Hit some tile that's above us, stop moving
                 if(worldAltitude > altitude.value) {
                     objectBase.offset = startingPosition;
-                    // TODO snap to tile
-                    return Vector3.zero;
+
+                    // This allows you to get "pretty close" to a tile edge
+                    var distance = objectBase.Distance(hit.collider);
+                    if(distance.distance > 2*Mathf.Epsilon) {
+                        return v.normalized * Mathf.Epsilon;
+                    } else {
+                        return Vector3.zero;
+                    }
                 }
             }
         }
         objectBase.offset = startingPosition;
-        return v;
-    }
-
-    public Vector3 move(Vector2 v) {
-        const float Epsilon = 0.00005f;
-        // if we're not enabled we don't make any adjustments to the passed in vector
-        if(!isEnabled) {
-            return v;
-        }
-        if(v.sqrMagnitude < Epsilon) {
-            return Vector3.zero;
-        }
-
-        var topLeft = objectBase.bounds.min;
-        var bottomRight = objectBase.bounds.max;
-        var topRight = objectBase.bounds.min + new Vector3(objectBase.bounds.size.x, 0, 0);
-        var bottomLeft = objectBase.bounds.min + new Vector3(0, objectBase.bounds.size.y, 0);
-        Vector3[] points = {topLeft, bottomRight, topRight, bottomLeft};
-
-        var highestAltitude = -1;
-        foreach(var point in points) {
-            var newAltitude = getAltitudeOfTile(point + (Vector3) v);
-            if(newAltitude > altitude.value) {
-                // try to move a smaller distance
-                return move(v/2);
-            } else {
-                highestAltitude = Math.Max(newAltitude, highestAltitude);
-            }
-        }
-        if(highestAltitude < altitude.value) {
-            return jumpToAltitude(highestAltitude);
-        }
         return v;
     }
 
