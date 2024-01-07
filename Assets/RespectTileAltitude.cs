@@ -73,51 +73,74 @@ public class RespectTileAltitude : MonoBehaviour
         return altitudes.ToList();
     }
 
+    List<Tilemap> GetTilemapAtAltitude(int atAltitude) {
+        List<Tilemap> tilemaps = new List<Tilemap>();
+        foreach(var tilemap in tileMapParent.GetComponentsInChildren<Tilemap>()) {
+            if (tilemap.TryGetComponent<Altitude>(out Altitude tilemapAltitude)) {
+                if(tilemapAltitude.value == atAltitude) {
+                    tilemaps.Add(tilemap);
+                }
+            }
+        }
+        return tilemaps;
+    }
+
+    bool colliderInDirection(Vector2 direction, Collider2D collider) {
+        var filter = new ContactFilter2D();
+        List<RaycastHit2D> results = new List<RaycastHit2D>();
+        var hits = objectBase.Cast(direction, filter.NoFilter(), results);
+
+        foreach(var result in results) {
+            if(result.collider == collider) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool isInside(Collider2D collider) {
+        return colliderInDirection(Vector2.up, collider) && colliderInDirection(Vector2.down, collider);
+    }
+
     public Vector3 move2(Vector2 v) {
         var filter = new ContactFilter2D();
         var startingPosition = new Vector2(objectBase.offset.x, objectBase.offset.y);
+
+        // if we don't overlap the current altitude we have to fall
+        var grounded = false;
+        var tilemapsOnAltitude = GetTilemapAtAltitude(altitude.value);
+        foreach(var tilemap in tilemapsOnAltitude) {
+            if (tilemap.TryGetComponent<CompositeCollider2D>(out CompositeCollider2D tilemapCollider)) {
+                if(isInside(tilemapCollider)) {
+                    grounded = true;
+                }
+            }
+        }
+        if(!grounded) {
+            // we need to fall
+            var newAltitude = getAltitudeOfTile(objectBase.transform.position);
+            // still add the original vector since movement isn't blocked
+            return v + (Vector2) jumpToAltitude(newAltitude);
+        }
+
         foreach(var worldAltitude in GetAltitudes()) {
-            objectBase.offset = startingPosition + (Vector2) objectBase.gameObject.transform.InverseTransformVector(new Vector2(0, worldAltitude - 1));
+            if(worldAltitude == altitude.value)
+                continue;
+
+            var localAltitudeOffset = (Vector2) objectBase.gameObject.transform.InverseTransformVector(new Vector2(0, worldAltitude - 1));
+            objectBase.offset = startingPosition + localAltitudeOffset;
             var hits = CastAtAltitude<Tilemap>(worldAltitude, v, filter.NoFilter(), v.magnitude);
             foreach(var hit in hits) {
-                objectBase.offset = startingPosition;
-                return Vector3.zero;
+                // Hit some tile that's above us, stop moving
+                if(worldAltitude > altitude.value) {
+                    objectBase.offset = startingPosition;
+                    // TODO snap to tile
+                    return Vector3.zero;
+                }
             }
         }
         objectBase.offset = startingPosition;
         return v;
-
-        // var filter = new ContactFilter2D();
-
-        // // this can't work because the colliders are in the wrong position.
-        // // maybe we dynamically offset the tilemap colliders on Start if
-        // // they have an altitude?
-        // // alternatively we could re-do the cast at each altitude by adjusting the origin's Y coordinates
-        // // at that point I might just want to do a boxcast?
-        // var hits = objectBase.Cast(v, filter.NoFilter(), v.magnitude);
-        // Debug.Log(hits);
-        // if(hits == 0) {
-        //     return v;
-        // }
-        // var minimumHitAtElevation = v;
-        // foreach(var hit in results)  {
-        //     var tilemap = hit.transform.gameObject.GetComponent<Tilemap>();
-        //     if(tilemap) {
-        //         Tilemap[] tilemaps = {tilemap};
-        //         Debug.Log("checking with out point");
-        //         Debug.Log(hit.point);
-        //         var newAltitude = _getAltitudeOfTileWithAdjustment(hit.point, (int tilemapAltitude) => tilemapAltitude - altitude.value, tilemaps);
-        //         Debug.Log("new altitude");
-        //         Debug.Log(newAltitude);
-        //         if(newAltitude != altitude.value) {
-        //             if(hit.distance < minimumHitAtElevation.magnitude) {
-        //                 minimumHitAtElevation = v.normalized * hit.distance;
-        //             }
-        //         }
-        //     }
-        // }
-        // return minimumHitAtElevation;
-
     }
 
     public Vector3 move(Vector2 v) {
