@@ -51,7 +51,14 @@ public class RespectTileAltitude : MonoBehaviour
     List<RaycastHit2D> CastAtAltitude<T>(int castAltitude, Vector3 direction, ContactFilter2D filter, float distance) where T : Component {
         List<RaycastHit2D> results = new List<RaycastHit2D>();
         List<RaycastHit2D> filtered = new List<RaycastHit2D>();
+
+        var localAltitudeOffset = (Vector2) objectBase.gameObject.transform.InverseTransformVector(new Vector2(0, castAltitude - altitude.value));
+        var startingPosition = new Vector2(objectBase.offset.x, objectBase.offset.y);
+        objectBase.offset = startingPosition + localAltitudeOffset;
+
         var hits = objectBase.Cast(direction, filter, results, distance);
+        objectBase.offset = startingPosition;
+
         foreach(var hit in results) {
             var hitAltitude = hit.transform.gameObject.GetComponent<Altitude>();
             if(hitAltitude && hitAltitude.value == castAltitude) {
@@ -103,9 +110,13 @@ public class RespectTileAltitude : MonoBehaviour
     }
 
     public Vector3 move(Vector2 v) {
+        if(!isEnabled) {
+            return v;
+        }
+
         var filter = new ContactFilter2D();
 
-        // if we don't overlap the current altitude we have to fall
+        // Check for falls
         var grounded = false;
         var tilemapsOnAltitude = GetTilemapAtAltitude(altitude.value);
         foreach(var tilemap in tilemapsOnAltitude) {
@@ -122,19 +133,18 @@ public class RespectTileAltitude : MonoBehaviour
             return v + (Vector2) jumpToAltitude(newAltitude);
         }
 
+        // Check for walls
         var startingPosition = new Vector2(objectBase.offset.x, objectBase.offset.y);
         foreach(var worldAltitude in GetAltitudes()) {
             if(worldAltitude == altitude.value)
                 continue;
 
-            var localAltitudeOffset = (Vector2) objectBase.gameObject.transform.InverseTransformVector(new Vector2(0, worldAltitude - altitude.value));
-            objectBase.offset = startingPosition + localAltitudeOffset;
+            // Offset our collider to compensate for altitude differences
             var hits = CastAtAltitude<Tilemap>(worldAltitude, v, filter.NoFilter(), v.magnitude);
+
             foreach(var hit in hits) {
                 // Hit some tile that's above us, stop moving
                 if(worldAltitude > altitude.value) {
-                    objectBase.offset = startingPosition;
-
                     // This allows you to get "pretty close" to a tile edge
                     var distance = objectBase.Distance(hit.collider);
                     if(distance.distance > 2*Mathf.Epsilon) {
@@ -145,7 +155,6 @@ public class RespectTileAltitude : MonoBehaviour
                 }
             }
         }
-        objectBase.offset = startingPosition;
         return v;
     }
 
