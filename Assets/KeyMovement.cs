@@ -16,11 +16,13 @@ public class KeyMovement : MonoBehaviour
     private Rigidbody2D rb;
     private BoxCollider2D box;
     private RespectTileAltitude tileAltitudeMover;
+    private Altitude altitude;
 
     void Awake() {
         rb = GetComponent<Rigidbody2D>();
         box = GetComponent<BoxCollider2D>();
         tileAltitudeMover = GetComponent<RespectTileAltitude>();
+        altitude = GetComponent<Altitude>();
     }
 
     // Update is called once per frame
@@ -30,24 +32,31 @@ public class KeyMovement : MonoBehaviour
 
     void FixedUpdate() {
         var movement = new Vector3(0,0,0);
+        AltitudeMoveResult moveResult = null;
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            movement += tileAltitudeMover.move(new Vector2(speed * Time.fixedDeltaTime, 0f));
+            moveResult = tileAltitudeMover.move(new Vector2(speed * Time.fixedDeltaTime, 0f));
         }
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            movement += tileAltitudeMover.move(new Vector2(-speed * Time.fixedDeltaTime, 0f));
+            moveResult = tileAltitudeMover.move(new Vector2(-speed * Time.fixedDeltaTime, 0f));
         }
 
         if (Input.GetKey(KeyCode.UpArrow))
         {
-            movement += tileAltitudeMover.move(new Vector2(0f, speed * Time.fixedDeltaTime));
+            moveResult = tileAltitudeMover.move(new Vector2(0f, speed * Time.fixedDeltaTime));
         }
 
         if (Input.GetKey(KeyCode.DownArrow))
         {
-            movement += tileAltitudeMover.move(new Vector2(0f, -speed * Time.fixedDeltaTime));
+            moveResult = tileAltitudeMover.move(new Vector2(0f, -speed * Time.fixedDeltaTime));
+        }
+        if(moveResult != null) {
+            if(moveResult.Altitude != altitude.value) {
+                altitude.changeAltitude(moveResult.Altitude);
+            }
+            movement += moveResult.ResultingMove;
         }
         rb.position += (Vector2) movement;
     }
