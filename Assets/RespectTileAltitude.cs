@@ -124,29 +124,6 @@ public class RespectTileAltitude : MonoBehaviour
         return grounded;
     }
 
-    float distanceToNearestWall(Vector3 ray) {
-        // Check for walls
-        var filter = new ContactFilter2D();
-        float minDistance = ray.magnitude;
-        foreach(var worldAltitude in getAltitudes()) {
-            if(worldAltitude == altitude.value)
-                continue;
-
-            // Offset our collider to compensate for altitude differences
-            var hits = CastAtAltitude(worldAltitude, ray, filter.NoFilter(), ray.magnitude);
-
-            foreach(var hit in hits) {
-                // Hit some tile that's above us, stop moving
-                if(worldAltitude > altitude.value) {
-                    var distance = altitude.objectBase.Distance(hit.collider);
-                    if(minDistance > distance.distance) 
-                        minDistance = distance.distance;
-                }
-            }
-        }
-        return minDistance;
-    }
-
     public AltitudeMoveResult _move(Vector2 v) {
         // Check for falls
         if(!isGrounded()) {
