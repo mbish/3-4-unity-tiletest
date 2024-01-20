@@ -2,13 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
 public class Altitude : MonoBehaviour
 {
     public int value = 0;
-    // do we really just want to create a child game object that
-    // has a matching collider on another layer that we use to
-    // distribute altitude-based collision events?
     public Collider2D objectBase;
     private Vector2 startingPosition;
 

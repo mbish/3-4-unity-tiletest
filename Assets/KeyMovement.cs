@@ -8,7 +8,6 @@ using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(BoxCollider2D))]
-[RequireComponent(typeof(RespectTileAltitude))]
 public class KeyMovement : MonoBehaviour
 {
     public float speed = 5f;
@@ -21,8 +20,8 @@ public class KeyMovement : MonoBehaviour
     void Awake() {
         rb = GetComponent<Rigidbody2D>();
         box = GetComponent<BoxCollider2D>();
-        tileAltitudeMover = GetComponent<RespectTileAltitude>();
-        altitude = GetComponent<Altitude>();
+        tileAltitudeMover = GetComponentInChildren<RespectTileAltitude>();
+        altitude = GetComponentInChildren<Altitude>();
     }
 
     // Update is called once per frame

@@ -10,10 +10,18 @@ public class Stairs : MonoBehaviour
     void Awake() {
         box = GetComponent<BoxCollider2D>();
     }
+
+    void FixedUpdate() {
+    }
     private void OnTriggerStay2D(Collider2D other) {
-        other.SendMessage("enterStairs");
+        if(!other.GetComponent<Altitude>()) {
+            Debug.Log(other);
+            other.SendMessage("enterStairs");
+        }
     }
     private void OnTriggerExit2D(Collider2D other) {
-        other.SendMessage("exitStairs");
+        if(!other.GetComponent<Altitude>()) {
+            other.SendMessage("exitStairs");
+        }
     }
 }
