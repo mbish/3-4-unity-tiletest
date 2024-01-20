@@ -23,6 +23,7 @@ public class Altitude : MonoBehaviour
     void Awake() {
         startingPosition = new Vector2(objectBase.offset.x, objectBase.offset.y);
         adjustCollider();
+        adjustRenderingOrder(value);
     }
 
 
@@ -32,16 +33,17 @@ public class Altitude : MonoBehaviour
     }
 
     private void adjustRenderingOrder(int delta) {
-        var renderer = gameObject.GetComponent<Renderer>();
+        var renderer = gameObject.transform.parent.GetComponent<Renderer>();
         if(renderer) {
             renderer.sortingOrder += delta;
         }
     }
 
     public void changeAltitude(int newValue) {
+        Debug.Log("new value: " + newValue, gameObject);
         var difference = newValue - value;
         adjustRenderingOrder(difference);
-        adjustCollider();
         value = newValue;
+        adjustCollider();
     }
 }

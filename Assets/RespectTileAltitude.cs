@@ -45,11 +45,11 @@ public class RespectTileAltitude : MonoBehaviour
     }
 
      int getAltitudeOfCurrentPositionIgnoringAltitude() {
-        return _getAltitudeOfPositionWithAdjustment((int checkAltitude) => checkAltitude - altitude.value);
+        return _getAltitudeOfPositionWithAdjustment((int checkAltitude) => altitude.value - checkAltitude);
     }
 
      int getAltitudeOfCurrentPosition() {
-        return _getAltitudeOfPositionWithAdjustment((int checkAltitude) => checkAltitude - altitude.value);
+        return _getAltitudeOfPositionWithAdjustment((int checkAltitude) => 0);
      }
 
 
