@@ -234,7 +234,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 3.5, y: -0.7, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -591,6 +591,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   value: 3
+  objectBase: {fileID: 947191186}
 --- !u!19719996 &947191185
 TilemapCollider2D:
   m_ObjectHideFlags: 0
@@ -2743,6 +2744,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   value: 1
+  objectBase: {fileID: 1120114887}
 --- !u!19719996 &1120114886
 TilemapCollider2D:
   m_ObjectHideFlags: 0
@@ -3131,6 +3133,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   value: 2
+  objectBase: {fileID: 1276804098}
 --- !u!19719996 &1276804097
 TilemapCollider2D:
   m_ObjectHideFlags: 0
@@ -3456,6 +3459,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   value: 1
+  objectBase: {fileID: 1519612920}
 --- !u!1 &1610098924
 GameObject:
   m_ObjectHideFlags: 0
@@ -3719,6 +3723,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   value: 4
+  objectBase: {fileID: 1610098929}
 --- !u!66 &1610098929
 CompositeCollider2D:
   m_ObjectHideFlags: 0
@@ -3923,7 +3928,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2031387163}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.82, y: -1.84, z: 0}
+  m_LocalPosition: {x: -2.4, y: -2.67, z: 0}
   m_LocalScale: {x: 0.13230541, y: 0.23113175, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4004,6 +4009,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   value: 1
+  objectBase: {fileID: 2031387168}
 --- !u!114 &2031387170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4016,8 +4022,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0af1f0d3fe77d7f4ba3809694cebccb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tileMapParent: {fileID: 1810041473}
-  objectBase: {fileID: 2031387168}
 --- !u!1 &2073230455
 GameObject:
   m_ObjectHideFlags: 0
@@ -4132,7 +4136,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.1444515, y: 1.0537183}
+  m_Offset: {x: -0.1444515, y: 1.028264}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -4143,7 +4147,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.2298949, y: 3.293435}
+  m_Size: {x: 1.2298949, y: 3.3443437}
   m_EdgeRadius: 0
 --- !u!4 &2136626581
 Transform:

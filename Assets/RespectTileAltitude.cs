@@ -45,7 +45,7 @@ public class RespectTileAltitude : MonoBehaviour
     }
 
      int getAltitudeOfCurrentPositionIgnoringAltitude() {
-        return _getAltitudeOfPositionWithAdjustment((int checkAltitude) => 0);
+        return _getAltitudeOfPositionWithAdjustment((int checkAltitude) => checkAltitude - altitude.value);
     }
 
      int getAltitudeOfCurrentPosition() {
@@ -57,12 +57,7 @@ public class RespectTileAltitude : MonoBehaviour
         List<RaycastHit2D> results = new List<RaycastHit2D>();
         List<RaycastHit2D> filtered = new List<RaycastHit2D>();
 
-        var localAltitudeOffset = (Vector2) altitude.objectBase.gameObject.transform.InverseTransformVector(new Vector2(0, castAltitude - altitude.value));
-        var startingPosition = new Vector2(altitude.objectBase.offset.x, altitude.objectBase.offset.y);
-        altitude.objectBase.offset = startingPosition + localAltitudeOffset;
-
         var hits = altitude.objectBase.Cast(direction, filter, results, distance);
-        altitude.objectBase.offset = startingPosition;
 
         foreach(var hit in results) {
             var hitAltitude = hit.transform.gameObject.GetComponent<Altitude>();
