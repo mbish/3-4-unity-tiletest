@@ -90,10 +90,11 @@ public class RespectTileAltitude : MonoBehaviour
         return altitudes;
     }
 
-    bool colliderInDirection(Vector2 direction, Collider2D collider) {
+    bool colliderInDirection(Vector2 origin, Vector2 direction, Collider2D collider) {
         var filter = new ContactFilter2D();
         List<RaycastHit2D> results = new List<RaycastHit2D>();
-        var hits = altitude.objectBase.Cast(direction, filter.NoFilter(), results);
+
+        var hits = Physics2D.Raycast(origin, direction, filter.NoFilter(), results);
 
         foreach(var result in results) {
             if(result.collider == collider) {
@@ -104,7 +105,9 @@ public class RespectTileAltitude : MonoBehaviour
     }
 
     bool isInside(Collider2D collider) {
-        return colliderInDirection(Vector2.up, collider) && colliderInDirection(Vector2.down, collider);
+        if(collider.IsTouching(altitude.objectBase))
+            return true;
+        return colliderInDirection(altitude.objectBase.bounds.min, Vector2.up, collider) && colliderInDirection(altitude.objectBase.bounds.max, Vector2.down, collider);
     }
 
     bool isGrounded() {
